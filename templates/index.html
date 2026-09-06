@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ایونت‌پلنت - سامانه مدیریت رویدادها</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: #1f2937;
+      --bg-input: #0f172a;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #8b5cf6;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border: #374151;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(17, 24, 39, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      cursor: pointer;
+    }
+
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1.15rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .btn-primary { background-color: var(--primary); color: #fff; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    .btn-accent { background-color: var(--accent); color: #fff; }
+    .btn-accent:hover { background-color: #7c3aed; }
+    .btn-secondary { background-color: #374151; color: #fff; }
+    .btn-secondary:hover { background-color: #4b5563; }
+    .btn-danger { background-color: var(--danger); color: #fff; }
+    .btn-danger:hover { background-color: var(--danger-hover); }
+    .btn-warning { background-color: var(--warning); color: #111827; }
+    .btn-success { background-color: var(--success); color: #fff; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 0.375rem; }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1240px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .tabs, .categories {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn, .cat-btn {
+      background-color: var(--bg-surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active, .cat-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .event-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-banner {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      overflow: hidden;
+      background: #1e293b;
+    }
+
+    .card-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(31, 41, 55, 1) 0%, rgba(31, 41, 55, 0.1) 100%);
+    }
+
+    .card-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .event-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .event-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .event-meta {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-PUBLISHED, .badge-Published { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .badge-DRAFT, .badge-Draft { background-color: rgba(148, 163, 184, 0.2); color: var(--text-muted); }
+    .badge-FINISHED, .badge-Finished { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .badge-CANCELLED, .badge-Cancelled { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .badge-REGISTRATION_CLOSED, .badge-Closed { background-color: rgba(245, 158, 11, 0.2); color: var(--warning); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 1.5rem;
+    }
+
+    .modal-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      max-width: 540px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 0.65rem;
+      border-radius: 0.45rem;
+      font-size: 0.875rem;
+      outline: none;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+    }
+    .form-row > div { flex: 1; }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      text-align: right;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .review-item {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand" onclick="location.reload()">✦ ایونت‌پلنت</div>
+    <div class="auth-section" id="auth-section"></div>
+  </header>
+
+  <main>
+    <div class="top-bar">
+      <div class="tabs" id="view-tabs">
+        <button class="tab-btn active" onclick="switchTab('all')">همه رویدادها</button>
+        <button class="tab-btn" id="my-reg-tab" style="display:none;" onclick="switchTab('my')">رویدادهای من (ثبت‌نام‌ها)</button>
+        <button class="tab-btn" id="org-events-tab" style="display:none;" onclick="switchTab('org')">رویدادهای ایجادی من</button>
+      </div>
+
+      <button class="btn btn-accent" id="create-event-btn" style="display:none;" onclick="openModal('createEventModal')">
+        + تعریف رویداد جدید
+      </button>
+    </div>
+
+    <!-- فیلتر دسته‌بندی‌ها -->
+    <div class="categories" id="cat-filters" style="margin-bottom: 1.5rem;">
+      <button class="cat-btn active" onclick="filterCategory('')">🌐 همه رویدادها</button>
+      <button class="cat-btn" onclick="filterCategory('WEBINAR')">💻 وبینار آنلاین</button>
+      <button class="cat-btn" onclick="filterCategory('WORKSHOP')">🛠 کارگاه تخصصی</button>
+      <button class="cat-btn" onclick="filterCategory('CONTEST')">🏆 مسابقه چندمرحله‌ای</button>
+      <button class="cat-btn" onclick="filterCategory('CONFERENCE')">🎤 کنفرانس حضوری</button>
+    </div>
+
+    <!-- گرید کارت‌ها -->
+    <div id="events-container" class="events-grid">
+      <p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">در حال بارگذاری...</p>
+    </div>
+  </main>
+
+  <!-- مودال ورود و ثبت‌نام -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <h3 id="authModalTitle">ورود به حساب کاربری</h3>
+      <div class="form-group">
+        <label>نام کاربری</label>
+        <input type="text" id="loginUsername" placeholder="نام کاربری">
+      </div>
+      <div class="form-group">
+        <label>رمز عبور</label>
+        <input type="password" id="loginPassword">
+      </div>
+      <div id="registerExtraFields" style="display: none; flex-direction: column; gap: 1rem;">
+        <div class="form-group">
+          <label>نقش کاربری</label>
+          <select id="regRole">
+            <option value="PARTICIPANT">شرکت‌کننده عادی</option>
+            <option value="ORGANIZER">برگزارکننده رویداد</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); cursor: pointer; text-decoration: underline;" id="toggleAuthModeBtn" onclick="toggleAuthMode()">
+        حساب کاربری ندارید؟ ثبت‌نام کنید
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('loginModal')">انصراف</button>
+        <button class="btn btn-primary" id="authSubmitBtn" onclick="submitAuth()">ورود</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال ایجاد رویداد -->
+  <div class="modal" id="createEventModal">
+    <div class="modal-content">
+      <h3>ایجاد رویداد جدید</h3>
+      <div class="form-group">
+        <label>عنوان رویداد *</label>
+        <input type="text" id="evTitle" placeholder="مثلاً: وبینار کاربردی هوش مصنوعی">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>قالب / دسته‌بندی رویداد *</label>
+          <select id="evType">
+            <option value="WEBINAR">💻 وبینار آنلاین</option>
+            <option value="WORKSHOP">🛠 کارگاه تخصصی</option>
+            <option value="CONTEST">🏆 مسابقه چندمرحله‌ای</option>
+            <option value="CONFERENCE">🎤 کنفرانس حضوری</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ظرفیت کل *</label>
+          <input type="number" id="evCapacity" placeholder="مثلاً: 25">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>زمان شروع *</label>
+          <input type="datetime-local" id="evStartTime">
+        </div>
+        <div class="form-group">
+          <label>زمان پایان *</label>
+          <input type="datetime-local" id="evEndTime">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>توضیحات رویداد *</label>
+        <textarea id="evDesc" rows="3" placeholder="سرفصل‌ها و اهداف دوره..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('createEventModal')">انصراف</button>
+        <button class="btn btn-accent" onclick="submitCreateEvent()">ایجاد رویداد</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال مراحل رویداد -->
+  <div class="modal" id="stagesModal">
+    <div class="modal-content">
+      <h3 id="stagesModalTitle">برنامه زمانی و مراحل رویداد</h3>
+      <div id="stagesListContainer"></div>
+      <div id="addStageSection" style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        <h4 style="font-size: 0.95rem;">+ افزودن مرحله جدید</h4>
+        <input type="hidden" id="stageEventId">
+        <div class="form-row">
+          <div class="form-group" style="flex:2;"><label>عنوان مرحله *</label><input type="text" id="stTitle"></div>
+          <div class="form-group" style="flex:1;"><label>ترتیب *</label><input type="number" id="stOrder" value="1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>زمان شروع مرحله *</label><input type="datetime-local" id="stStart"></div>
+          <div class="form-group"><label>زمان پایان مرحله *</label><input type="datetime-local" id="stEnd"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="align-self:flex-start;" onclick="submitAddStage()">ثبت مرحله</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('stagesModal')">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال کارنامه و نتایج -->
+  <div class="modal" id="resultsModal">
+    <div class="modal-content">
+      <h3 id="resultsModalTitle">🏆 کارنامه و نمرات رویداد</h3>
+      <div id="resultsListContainer"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('resultsModal')">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال ثبت نمره داوری -->
+  <div class="modal" id="scoreModal">
+    <div class="modal-content">
+      <h3>ثبت نمره داوری و کارنامه</h3>
+      <input type="hidden" id="scoreEventId">
+      <div class="form-group">
+        <label>انتخاب شرکت‌کننده</label>
+        <select id="participantSelect">
+          <option value="">در حال بارگذاری...</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>رتبه</label><input type="number" id="rankInput" placeholder="مثلاً: 1"></div>
+        <div class="form-group"><label>نمره *</label><input type="number" step="0.1" id="scoreInput" placeholder="مثلاً: 95"></div>
+      </div>
+      <div class="form-group">
+        <label>توضیحات و بازخورد داور</label>
+        <textarea id="remarksInput" rows="3" placeholder="توضیحات و بازخورد اختصاصی..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('scoreModal')">انصراف</button>
+        <button class="btn btn-warning" onclick="submitScore()">ثبت نمره در کارنامه</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال نظرات و بازخورد -->
+  <div class="modal" id="reviewsModal">
+    <div class="modal-content">
+      <h3 id="reviewsModalTitle">💬 نظرات و بازخورد شرکت‌کنندگان</h3>
+      
+      <div id="reviewsListContainer" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 250px; overflow-y: auto;">
+        <!-- لیست نظرات -->
+      </div>
+
+      <!-- فرم ثبت نظر (فقط شرکت‌کنندگان تاییدشده) -->
+      <div id="addReviewSection" style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        <h4 style="font-size: 0.95rem;">✍️ ثبت نظر شما درباره این دوره</h4>
+        <input type="hidden" id="reviewEventId">
+        <div class="form-group">
+          <label>امتیاز شما به دوره (۱ تا ۵ ستاره)</label>
+          <select id="reviewRatingInput">
+            <option value="5">⭐⭐⭐⭐⭐ (عالی - ۵ از ۵)</option>
+            <option value="4">⭐⭐⭐⭐ (خیلی خوب - ۴ از ۵)</option>
+            <option value="3">⭐⭐⭐ (متوسط - ۳ از ۵)</option>
+            <option value="2">⭐⭐ (ضعیف - ۲ از ۵)</option>
+            <option value="1">⭐ (بسیار ضعیف - ۱ از ۵)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>دیدگاه و تجربه شما</label>
+          <textarea id="reviewTextInput" rows="3" placeholder="کیفیت برگزاری، تسلط مدرس و نقاط قوت دوره..."></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm" style="align-self:flex-start;" onclick="submitReview()">ثبت و ارسال بازخورد</button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('reviewsModal')">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    let allEventsCache = [];
+    let myRegistrationsCache = [];
+    let currentCategory = '';
+    let currentTab = 'all';
+    let isRegisterMode = false;
+
+    const BANNER_MAP = {
+      'WEBINAR': 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?auto=format&fit=crop&w=800&q=80',
+      'WORKSHOP': 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80',
+      'CONTEST': 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80',
+      'CONFERENCE': 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80'
+    };
+
+    function getToken() { return localStorage.getItem('token'); }
+    function getUser() {
+      const u = localStorage.getItem('user');
+      return u ? JSON.parse(u) : null;
+    }
+
+    function setAuth(token, user) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      renderAuth();
+      loadData();
+    }
+
+    function clearAuth() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      renderAuth();
+      loadData();
+    }
+
+    function renderAuth() {
+      const authDiv = document.getElementById('auth-section');
+      const myRegTab = document.getElementById('my-reg-tab');
+      const orgTab = document.getElementById('org-events-tab');
+      const createBtn = document.getElementById('create-event-btn');
+      const user = getUser();
+
+      if (user && getToken()) {
+        const isOrg = user.role === 'ORGANIZER' || user.is_organizer || user.is_superuser;
+        const roleLabel = isOrg ? 'برگزارکننده' : 'شرکت‌کننده';
+
+        authDiv.innerHTML = `
+          <span style="font-size:0.875rem;">خوش آمدید، <b>${user.username}</b> (${roleLabel})</span>
+          <button class="btn btn-danger btn-sm" onclick="clearAuth()">خروج</button>
+        `;
+
+        myRegTab.style.display = !isOrg ? 'block' : 'none';
+        if (isOrg) {
+          orgTab.style.display = 'block';
+          createBtn.style.display = 'inline-flex';
+        } else {
+          orgTab.style.display = 'none';
+          createBtn.style.display = 'none';
+        }
+      } else {
+        authDiv.innerHTML = `<button class="btn btn-primary" onclick="openModal('loginModal')">ورود / ثبت‌نام</button>`;
+        myRegTab.style.display = 'none';
+        orgTab.style.display = 'none';
+        createBtn.style.display = 'none';
+      }
+    }
+
+    async function loadData() {
+      const token = getToken();
+      const headers = token ? { 'Authorization': `Token ${token}` } : {};
+
+      try {
+        const resEvents = await fetch(`${API_BASE}/events/`, { headers });
+        allEventsCache = resEvents.ok ? await resEvents.json() : [];
+
+        if (token) {
+          try {
+            const resReg = await fetch(`${API_BASE}/relations/registrations/`, { headers });
+            if (resReg.ok) {
+              myRegistrationsCache = await resReg.json();
+            } else if (resReg.status === 401) {
+              clearAuth();
+              return;
+            }
+          } catch (e) {
+            myRegistrationsCache = [];
+          }
+        } else {
+          myRegistrationsCache = [];
+        }
+
+        renderEvents();
+      } catch (err) {
+        document.getElementById('events-container').innerHTML = '<p style="color: var(--danger); text-align: center; grid-column: 1/-1;">خطا در دریافت اطلاعات از سرور.</p>';
+      }
+    }
+
+    function getCleanEventData(event) {
+      let desc = event.description || '';
+      let type = 'WORKSHOP';
+
+      const match = desc.match(/\[TYPE:(WEBINAR|WORKSHOP|CONTEST|CONFERENCE)\]/);
+      if (match) {
+        type = match[1];
+        desc = desc.replace(match[0], '').trim();
+      } else {
+        const lower = (event.title + ' ' + desc).toLowerCase();
+        if (lower.includes('وبینار') || lower.includes('webinar')) type = 'WEBINAR';
+        else if (lower.includes('مسابقه') || lower.includes('contest')) type = 'CONTEST';
+        else if (lower.includes('کنفرانس') || lower.includes('همایش') || lower.includes('conference')) type = 'CONFERENCE';
+        else type = 'WORKSHOP';
+      }
+
+      return { cleanDesc: desc, eventType: type };
+    }
+
+    function renderEvents() {
+      const container = document.getElementById('events-container');
+      const user = getUser();
+      let filtered = [...allEventsCache];
+
+      if (currentTab === 'my') {
+        const registeredEventIds = myRegistrationsCache.map(r => r.event);
+        filtered = filtered.filter(e => registeredEventIds.includes(e.id));
+      } else if (currentTab === 'org') {
+        if (user) {
+          filtered = filtered.filter(e => String(e.organizer) === String(user.id) || user.is_superuser);
+        }
+      }
+
+      if (currentCategory) {
+        filtered = filtered.filter(e => {
+          const { eventType } = getCleanEventData(e);
+          return eventType === currentCategory;
+        });
+      }
+
+      if (!filtered || filtered.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">هیچ رویدادی یافت نشد.</p>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(event => {
+        const { cleanDesc, eventType } = getCleanEventData(event);
+        
+        // تفکیک قطعی نقش کاربر جاری
+        const isUserOrganizer = user && (user.role === 'ORGANIZER' || user.is_organizer || user.is_superuser);
+        const isEventOwner = user && (String(user.id) === String(event.organizer) || user.is_superuser);
+        const reg = !isUserOrganizer ? myRegistrationsCache.find(r => r.event === event.id) : null;
+        
+        const statusUpper = String(event.status).toUpperCase();
+        const bannerUrl = BANNER_MAP[eventType] || BANNER_MAP['WORKSHOP'];
+
+        let remCapacity = event.remaining_capacity;
+        if (remCapacity === undefined || remCapacity === null) {
+          if (event.capacity !== undefined && event.capacity !== null) {
+            const regCount = event.registered_count || 0;
+            remCapacity = Math.max(0, event.capacity - regCount);
+          }
+        }
+        const isFull = event.capacity && remCapacity === 0;
+
+        return `
+          <div class="event-card">
+            <div class="card-banner">
+              <img src="${bannerUrl}" alt="${event.title}">
+              <div class="card-banner-overlay"></div>
+              <span class="badge badge-${event.status}" style="position: absolute; top: 12px; right: 12px; z-index: 2;">${getStatusLabel(event.status)}</span>
+              <span style="position: absolute; bottom: 10px; right: 14px; font-size: 0.8rem; background: rgba(0,0,0,0.65); padding: 2px 8px; border-radius: 4px; color: #fff; z-index: 2;">
+                ${getTypeLabel(eventType)}
+              </span>
+            </div>
+
+            <div class="card-body">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:-0.25rem;">
+                <span style="font-size:0.8rem; color:var(--text-muted);">برگزارکننده: <b>${event.organizer_name || 'مدیر'}</b></span>
+              </div>
+
+              <div class="event-title">${event.title}</div>
+              <div class="event-desc">${cleanDesc || 'بدون توضیحات ثبت‌شده'}</div>
+              
+              <div class="event-meta">
+                <div class="meta-row">
+                  <span>ظرفیت باقی‌مانده:</span> 
+                  <b style="color: ${isFull ? 'var(--danger)' : '#fff'};">
+                    ${event.capacity ? `${remCapacity} نفر از ${event.capacity} نفر` : 'نامحدود'}
+                  </b>
+                </div>
+                <div class="meta-row"><span>شروع:</span> <b>${formatDate(event.start_time)}</b></div>
+                <div class="meta-row"><span>پایان:</span> <b>${formatDate(event.end_time)}</b></div>
+                ${(!isUserOrganizer && reg) ? `<div class="meta-row" style="color:var(--success);"><span>وضعیت شما:</span> <b>ثبت‌نام شده</b></div>` : ''}
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto;">
+                <div style="display: flex; gap: 0.4rem;">
+                  <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openStagesModal(${event.id}, '${event.title}', ${isEventOwner})">برنامه و مراحل</button>
+                  <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openResultsModal(${event.id}, '${event.title}')">کارنامه و نتایج</button>
+                </div>
+
+                <!-- نظرات در رویداد پایان‌یافته -->
+                ${(statusUpper === 'FINISHED') ? `
+                  <button class="btn btn-secondary btn-sm" style="background: rgba(99, 102, 241, 0.2); border: 1px solid var(--primary); color: #c7d2fe;" onclick="openReviewsModal(${event.id}, '${event.title}', ${!isUserOrganizer && !!reg})">
+                    💬 نظرات و بازخورد کاربران
+                  </button>
+                ` : ''}
+
+                <!-- بخش شرکت‌کننده -->
+                ${!isUserOrganizer ? (
+                  reg && statusUpper !== 'CANCELLED' && statusUpper !== 'FINISHED' ? `
+                    <button class="btn btn-danger btn-sm" onclick="cancelRegistration(${event.id})">انصراف از شرکت در رویداد</button>
+                  ` : (user && (statusUpper === 'PUBLISHED') ? (
+                    isFull ? `
+                      <button class="btn btn-secondary btn-sm" disabled style="opacity:0.6; cursor:not-allowed;">تکمیل ظرفیت شده است</button>
+                    ` : `
+                      <button class="btn btn-primary btn-sm" onclick="registerInEvent(${event.id})">ثبت‌نام در این رویداد</button>
+                    `
+                  ) : (statusUpper === 'REGISTRATION_CLOSED' || statusUpper === 'CLOSED' ? `
+                    <button class="btn btn-secondary btn-sm" disabled style="opacity:0.6; cursor:not-allowed;">ثبت‌نام بسته شده است</button>
+                  ` : ''))
+                ) : ''}
+
+                <!-- بخش برگزارکننده رویداد -->
+                ${isEventOwner ? `
+                  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                    ${(statusUpper === 'DRAFT') ? `
+                      <button class="btn btn-success btn-sm" style="flex:1;" onclick="changeEventStatus(${event.id}, 'PUBLISHED')">انتشار عمومی رویداد</button>
+                    ` : ''}
+
+                    ${(statusUpper === 'PUBLISHED') ? `
+                      <button class="btn btn-warning btn-sm" style="flex:1;" onclick="changeEventStatus(${event.id}, 'CLOSED')">بستن ثبت‌نام و شروع داوری</button>
+                    ` : ''}
+
+                    ${(statusUpper === 'REGISTRATION_CLOSED' || statusUpper === 'CLOSED') ? `
+                      <button class="btn btn-warning btn-sm" style="flex:1;" onclick="openScoreModal(${event.id})">⭐ ثبت نمره داوری</button>
+                      <button class="btn btn-primary btn-sm" style="flex:1;" onclick="changeEventStatus(${event.id}, 'FINISHED')">اتمام نهایی رویداد</button>
+                    ` : ''}
+
+                    ${(statusUpper === 'FINISHED') ? `
+                      <button class="btn btn-warning btn-sm" style="flex:1;" onclick="openScoreModal(${event.id})">⭐ ویرایش / ثبت نمره داوری</button>
+                    ` : ''}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatDate(dt) {
+      if (!dt) return 'نامشخص';
+      try {
+        const d = new Date(dt);
+        return d.toLocaleDateString('fa-IR') + ' ساعت ' + d.toLocaleTimeString('fa-IR', {hour: '2-digit', minute:'2-digit'});
+      } catch (e) {
+        return dt;
+      }
+    }
+
+    function getTypeLabel(type) {
+      const labels = {
+        'WEBINAR': '💻 وبینار آنلاین',
+        'WORKSHOP': '🛠 کارگاه تخصصی',
+        'CONTEST': '🏆 مسابقه چندمرحله‌ای',
+        'CONFERENCE': '🎤 کنفرانس حضوری'
+      };
+      return labels[type] || 'عمومی';
+    }
+
+    async function changeEventStatus(eventId, newStatus) {
+      const labels = {
+        'PUBLISHED': 'انتشار عمومی رویداد',
+        'CLOSED': 'بستن ثبت‌نام و شروع فرآیند داوری',
+        'FINISHED': 'اتمام نهایی رویداد'
+      };
+
+      if (!confirm(`آیا از تغییر وضعیت رویداد به "${labels[newStatus] || newStatus}" اطمینان دارید؟`)) return;
+
+      const token = getToken();
+      try {
+        const res = await fetch(`${API_BASE}/events/${eventId}/status/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (res.ok) {
+          alert("وضعیت رویداد با موفقیت به‌روزرسانی شد.");
+          loadData();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert(err.detail || "خطا در تغییر وضعیت رویداد.");
+        }
+      } catch (e) {
+        alert("خطا در برقراری ارتباط با سرور.");
+      }
+    }
+
+    async function cancelRegistration(eventId) {
+      if (!confirm("آیا از انصراف از این رویداد اطمینان دارید؟")) return;
+
+      const token = getToken();
+      try {
+        const res = await fetch(`${API_BASE}/relations/events/${eventId}/cancel/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          }
+        });
+
+        if (res.ok) {
+          alert("انصراف شما با موفقیت ثبت شد.");
+          loadData();
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(data.detail || "خطا در انصراف.");
+        }
+      } catch (err) {
+        alert("خطا در برقراری ارتباط با سرور.");
+      }
+    }
+
+    async function registerInEvent(eventId) {
+      const token = getToken();
+      if (!token) { openModal('loginModal'); return; }
+
+      try {
+        const res = await fetch(`${API_BASE}/relations/registrations/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+          body: JSON.stringify({ event: eventId })
+        });
+
+        if (res.ok) {
+          alert('ثبت‌نام شما با موفقیت انجام شد.');
+          loadData();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert(err.detail || (err.non_field_errors && err.non_field_errors[0]) || 'خطا در ثبت‌نام.');
+        }
+      } catch (e) {
+        alert('خطا در برقراری ارتباط با سرور.');
+      }
+    }
+
+    async function submitCreateEvent() {
+      const title = document.getElementById('evTitle').value.trim();
+      const eventType = document.getElementById('evType').value;
+      const capacity = document.getElementById('evCapacity').value;
+      const startTimeInput = document.getElementById('evStartTime').value;
+      const endTimeInput = document.getElementById('evEndTime').value;
+      const userDesc = document.getElementById('evDesc').value.trim();
+
+      if (!title) { alert("عنوان رویداد الزامی است."); return; }
+      if (!capacity) { alert("تعیین ظرفیت الزامی است."); return; }
+      if (!startTimeInput || !endTimeInput) { alert("زمان شروع و پایان الزامی است."); return; }
+
+      const start_time = new Date(startTimeInput).toISOString();
+      const end_time = new Date(endTimeInput).toISOString();
+      const description = `[TYPE:${eventType}]\n${userDesc}`;
+
+      const token = getToken();
+      try {
+        const res = await fetch(`${API_BASE}/events/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+          body: JSON.stringify({
+            title,
+            capacity: parseInt(capacity),
+            start_time,
+            end_time,
+            description,
+            status: 'Draft'
+          })
+        });
+
+        if (res.ok) {
+          alert("رویداد جدید در وضعیت پیش‌نویس (Draft) ساخته شد. می‌توانید آن را منتشر کنید.");
+          closeModal('createEventModal');
+          loadData();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert("خطا در ایجاد: " + JSON.stringify(err));
+        }
+      } catch (e) {
+        alert("خطا در ارتباط با سرور.");
+      }
+    }
+
+    async function openScoreModal(eventId) {
+      document.getElementById('scoreEventId').value = eventId;
+      const select = document.getElementById('participantSelect');
+      select.innerHTML = '<option>در حال بارگذاری...</option>';
+      openModal('scoreModal');
+
+      const token = getToken();
+      try {
+        const res = await fetch(`${API_BASE}/events/${eventId}/participants/`, {
+          headers: { 'Authorization': `Token ${token}` }
+        });
+
+        if (res.ok) {
+          const participants = await res.json();
+          if (participants.length === 0) {
+            select.innerHTML = '<option value="">هیچ شرکت‌کننده تأییدشده‌ای وجود ندارد</option>';
+          } else {
+            select.innerHTML = participants.map(p => `<option value="${p.id}">${p.username}</option>`).join('');
+          }
+        } else {
+          select.innerHTML = '<option value="">خطا در دریافت شرکت‌کنندگان</option>';
+        }
+      } catch (e) {
+        select.innerHTML = '<option value="">خطا در برقراری ارتباط</option>';
+      }
+    }
+
+    async function submitScore() {
+      const eventId = document.getElementById('scoreEventId').value;
+      const participantId = document.getElementById('participantSelect').value;
+      const scoreVal = document.getElementById('scoreInput').value;
+      const rankVal = document.getElementById('rankInput').value;
+      const remarksVal = document.getElementById('remarksInput').value.trim();
+
+      if (!participantId) {
+        alert("لطفاً یک شرکت‌کننده را انتخاب کنید.");
+        return;
+      }
+      if (scoreVal === "") {
+        alert("وارد کردن نمره الزامی است.");
+        return;
+      }
+
+      const payload = {
+        participant: parseInt(participantId),
+        score: parseFloat(scoreVal),
+        remarks: remarksVal || ""
+      };
+
+      if (rankVal !== "") {
+        payload.rank = parseInt(rankVal);
+      }
+
+      const token = getToken();
+      try {
+        const res = await fetch(`${API_BASE}/events/${eventId}/results/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert("نمره با موفقیت در کارنامه ثبت شد.");
+          closeModal('scoreModal');
+          loadData();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          let errMsg = "";
+          for (let key in err) {
+            errMsg += `${key}: ${err[key]} \n`;
+          }
+          alert("علت خطا از سرور:\n" + (errMsg || JSON.stringify(err)));
+        }
+      } catch (e) {
+        alert("خطا در برقراری ارتباط با سرور.");
+      }
+    }
+
+    async function openResultsModal(eventId, title) {
+      document.getElementById('resultsModalTitle').innerText = `کارنامه رویداد: ${title}`;
+      const container = document.getElementById('resultsListContainer');
+      container.innerHTML = '<p>در حال بارگذاری...</p>';
+      openModal('resultsModal');
+
+      try {
+        const res = await fetch(`${API_BASE}/events/${eventId}/results/`);
+        if (res.ok) {
+          const results = await res.json();
+          if (results.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted);">هنوز نمره‌ای ثبت نشده است.</p>';
+          } else {
+            container.innerHTML = `
+              <table>
+                <thead>
+                  <tr><th>رتبه</th><th>نام شرکت‌کننده</th><th>نمره</th><th>توضیحات داور</th></tr>
+                </thead>
+                <tbody>
+                  ${results.map(r => `
+                    <tr>
+                      <td><b>${r.rank || '-'}</b></td>
+                      <td><b>${r.participant_name || r.participant}</b></td>
+                      <td style="color:var(--warning); font-weight:bold;">${r.score}</td>
+                      <td>${r.remarks || '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+          }
+        }
+      } catch (e) {
+        container.innerHTML = '<p style="color:var(--danger);">خطا در دریافت نتایج.</p>';
+      }
+    }
+
+    async function openReviewsModal(eventId, title, isParticipant) {
+      document.getElementById('reviewsModalTitle').innerText = `نظرات دوره: ${title}`;
+      document.getElementById('reviewEventId').value = eventId;
+      document.getElementById('reviewTextInput').value = '';
+      document.getElementById('addReviewSection').style.display = isParticipant ? 'flex' : 'none';
+
+      openModal('reviewsModal');
+      await loadReviewsFromAPI(eventId);
+    }
+
+    async function loadReviewsFromAPI(eventId) {
+      const container = document.getElementById('reviewsListContainer');
+      container.innerHTML = '<p style="color:var(--text-muted); font-size:0.875rem;">در حال دریافت نظرات از سرور...</p>';
+
+      const token = getToken();
+      const headers = token ? { 'Authorization': `Token ${token}` } : {};
+
+      try {
+        const res = await fetch(`${API_BASE}/relations/feedbacks/?event_id=${eventId}`, { headers });
+        if (res.ok) {
+          const feedbacks = await res.json();
+          if (feedbacks.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted); font-size:0.875rem;">هنوز هیچ نظری برای این دوره ثبت نشده است.</p>';
+          } else {
+            container.innerHTML = feedbacks.map(f => {
+              const stars = '⭐'.repeat(f.rating || 5);
+              return `
+                <div class="review-item">
+                  <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--accent);">
+                    <b>👤 ${f.participant_username || 'شرکت‌کننده'}</b>
+                    <span>${stars} (${f.rating}/5)</span>
+                  </div>
+                  <div style="font-size:0.875rem; color:#f3f4f6; margin-top:0.25rem; line-height:1.5;">${f.comment}</div>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">${formatDate(f.created_at)}</span>
+                </div>
+              `;
+            }).join('');
+          }
+        } else {
+          container.innerHTML = '<p style="color:var(--danger); font-size:0.875rem;">خطا در دریافت نظرات.</p>';
+        }
+      } catch (e) {
+        container.innerHTML = '<p style="color:var(--danger); font-size:0.875rem;">خطا در برقراری ارتباط با سرور.</p>';
+      }
+    }
+
+    async function submitReview() {
+      const eventId = document.getElementById('reviewEventId').value;
+      const comment = document.getElementById('reviewTextInput').value.trim();
+      const rating = document.getElementById('reviewRatingInput').value;
+
+      if (!comment) {
+        alert("لطفاً متن بازخورد خود را وارد کنید.");
+        return;
+      }
+
+      const token = getToken();
+      if (!token) {
+        alert("برای ثبت نظر ابتدا وارد حساب کاربری خود شوید.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/relations/feedbacks/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+          body: JSON.stringify({
+            event: parseInt(eventId),
+            rating: parseInt(rating),
+            comment: comment
+          })
+        });
+
+        if (res.ok) {
+          alert("بازخورد شما با موفقیت در دیتابیس ثبت شد.");
+          document.getElementById('reviewTextInput').value = '';
+          await loadReviewsFromAPI(eventId);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert(err.detail || (err.non_field_errors && err.non_field_errors[0]) || JSON.stringify(err));
+        }
+      } catch (e) {
+        alert("خطا در ارسال بازخورد به سرور.");
+      }
+    }
+
+    async function openStagesModal(eventId, title, isOrganizer) {
+      document.getElementById('stagesModalTitle').innerText = `مراحل رویداد: ${title}`;
+      document.getElementById('stageEventId').value = eventId;
+      document.getElementById('addStageSection').style.display = isOrganizer ? 'flex' : 'none';
+      const container = document.getElementById('stagesListContainer');
+      container.innerHTML = '<p>در حال بارگذاری...</p>';
+      openModal('stagesModal');
+
+      try {
+        const res = await fetch(`${API_BASE}/events/${eventId}/stages/`);
+        if (res.ok) {
+          const stages = await res.json();
+          if (stages.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted);">مرحله‌ای تعریف نشده است.</p>';
+          } else {
+            container.innerHTML = `
+              <table>
+                <thead><tr><th>ترتیب</th><th>عنوان مرحله</th><th>زمان شروع</th><th>زمان پایان</th></tr></thead>
+                <tbody>
+                  ${stages.map(s => `<tr><td>${s.order}</td><td><b>${s.title}</b></td><td>${formatDate(s.start_time)}</td><td>${formatDate(s.end_time)}</td></tr>`).join('')}
+                </tbody>
+              </table>
+            `;
+          }
+        }
+      } catch (e) {
+        container.innerHTML = '<p style="color:var(--danger);">خطا در دریافت مراحل.</p>';
+      }
+    }
+
+    async function submitAddStage() {
+      const eventId = document.getElementById('stageEventId').value;
+      const title = document.getElementById('stTitle').value.trim();
+      const order = document.getElementById('stOrder').value;
+      const startVal = document.getElementById('stStart').value;
+      const endVal = document.getElementById('stEnd').value;
+
+      if (!title || !startVal || !endVal) { alert("عنوان و زمان‌های شروع و پایان مرحله الزامی هستند."); return; }
+
+      const token = getToken();
+      try {
+        const res = await fetch(`${API_BASE}/events/${eventId}/stages/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+          body: JSON.stringify({
+            title,
+            order: parseInt(order),
+            start_time: new Date(startVal).toISOString(),
+            end_time: new Date(endVal).toISOString()
+          })
+        });
+
+        if (res.ok) {
+          alert("مرحله اضافه شد.");
+          document.getElementById('stTitle').value = '';
+          openStagesModal(eventId, '', true);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert("خطا در ایجاد مرحله: " + JSON.stringify(err));
+        }
+      } catch (e) {
+        alert("خطا در ارتباط با سرور.");
+      }
+    }
+
+    function toggleAuthMode() {
+      isRegisterMode = !isRegisterMode;
+      document.getElementById('authModalTitle').innerText = isRegisterMode ? 'ثبت‌نام کاربر جدید' : 'ورود به حساب کاربری';
+      document.getElementById('registerExtraFields').style.display = isRegisterMode ? 'flex' : 'none';
+      document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'ثبت‌نام' : 'ورود';
+      document.getElementById('toggleAuthModeBtn').innerText = isRegisterMode ? 'حساب دارید؟ وارد شوید' : 'حساب ندارید؟ ثبت‌نام کنید';
+    }
+
+    async function submitAuth() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!username || !password) { alert("نام کاربری و رمز عبور الزامی است."); return; }
+
+      if (isRegisterMode) {
+        const role = document.getElementById('regRole').value;
+        try {
+          const res = await fetch(`${API_BASE}/accounts/register/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, role })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setAuth(data.token, data.user || { username, role });
+            closeModal('loginModal');
+          } else {
+            alert("خطا در ثبت‌نام.");
+          }
+        } catch (e) { alert("خطا در سرور."); }
+      } else {
+        try {
+          const res = await fetch(`${API_BASE}/accounts/login/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setAuth(data.token, data.user || { username, role: 'PARTICIPANT' });
+            closeModal('loginModal');
+          } else {
+            alert("نام کاربری یا رمز عبور اشتباه است.");
+          }
+        } catch (e) { alert("خطا در ورود."); }
+      }
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('#view-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderEvents();
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('#cat-filters .cat-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderEvents();
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function getStatusLabel(st) {
+      const m = {
+        'PUBLISHED': 'منتشر شده',
+        'Published': 'منتشر شده',
+        'DRAFT': 'پیش‌نویس',
+        'Draft': 'پیش‌نویس',
+        'FINISHED': 'پایان‌یافته',
+        'Finished': 'پایان‌یافته',
+        'CANCELLED': 'لغو‌شده',
+        'Cancelled': 'لغو‌شده',
+        'REGISTRATION_CLOSED': 'بسته شده',
+        'Closed': 'بسته شده'
+      };
+      return m[st] || st;
+    }
+
+    renderAuth();
+    loadData();
+  </script>
+</body>
+</html>
