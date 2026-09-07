@@ -80,7 +80,7 @@ class EventResult(models.Model):
         related_name='event_results',
         verbose_name="شرکت‌کننده"
     )
-    score = models.FloatField(verbose_name="امتیاز")
+    score = models.FloatField(default=0.0, verbose_name="امتیاز")
     rank = models.PositiveIntegerField(blank=True, null=True, verbose_name="رتبه")
     remarks = models.TextField(blank=True, null=True, verbose_name="توضیحات و بازخورد داور")
     published_at = models.DateTimeField(auto_now_add=True)
