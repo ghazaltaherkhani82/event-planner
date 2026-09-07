@@ -113,6 +113,27 @@
       gap: 1rem;
     }
 
+    .search-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.4rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      outline: none;
+      font-size: 0.85rem;
+      width: 100%;
+    }
+
     .tabs, .categories {
       display: flex;
       gap: 0.5rem;
@@ -327,9 +348,17 @@
         <button class="tab-btn" id="org-events-tab" style="display:none;" onclick="switchTab('org')">رویدادهای ایجادی من</button>
       </div>
 
-      <button class="btn btn-accent" id="create-event-btn" style="display:none;" onclick="openModal('createEventModal')">
-        + تعریف رویداد جدید
-      </button>
+      <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <!-- باکس جستجوی رویداد -->
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="searchInput" placeholder="جستجوی نام رویداد..." oninput="handleSearch(this.value)">
+        </div>
+
+        <button class="btn btn-accent" id="create-event-btn" style="display:none;" onclick="openModal('createEventModal')">
+          + تعریف رویداد جدید
+        </button>
+      </div>
     </div>
 
     <!-- فیلتر دسته‌بندی‌ها -->
@@ -346,6 +375,19 @@
       <p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">در حال بارگذاری...</p>
     </div>
   </main>
+
+  <!-- مودال پنل کاربری -->
+  <div class="modal" id="userProfileModal">
+    <div class="modal-content">
+      <h3>👤 پنل اطلاعات کاربری من</h3>
+      <div id="userProfileDetails" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+        <!-- اطلاعات پویا قرار می‌گیرد -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('userProfileModal')">بستن</button>
+      </div>
+    </div>
+  </div>
 
   <!-- مودال ورود و ثبت‌نام -->
   <div class="modal" id="loginModal">
@@ -525,6 +567,7 @@
     let myRegistrationsCache = [];
     let currentCategory = '';
     let currentTab = 'all';
+    let searchQuery = '';
     let isRegisterMode = false;
 
     const BANNER_MAP = {
@@ -566,6 +609,7 @@
         const roleLabel = isOrg ? 'برگزارکننده' : 'شرکت‌کننده';
 
         authDiv.innerHTML = `
+          <button class="btn btn-secondary btn-sm" onclick="openUserProfileModal()">👤 پنل کاربری من</button>
           <span style="font-size:0.875rem;">خوش آمدید، <b>${user.username}</b> (${roleLabel})</span>
           <button class="btn btn-danger btn-sm" onclick="clearAuth()">خروج</button>
         `;
@@ -584,6 +628,31 @@
         orgTab.style.display = 'none';
         createBtn.style.display = 'none';
       }
+    }
+
+    function openUserProfileModal() {
+      const user = getUser();
+      const container = document.getElementById('userProfileDetails');
+      if (!user) return;
+
+      const isOrg = user.role === 'ORGANIZER' || user.is_organizer || user.is_superuser;
+      const myCreatedCount = allEventsCache.filter(e => String(e.organizer) === String(user.id) || user.is_superuser).length;
+      const myRegCount = myRegistrationsCache.length;
+
+      container.innerHTML = `
+        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 0.50rem; border: 1px solid var(--border);">
+          <p><b>نام کاربری:</b> ${user.username}</p>
+          <p style="margin-top: 0.5rem;"><b>نقش سیستمی:</b> ${isOrg ? 'برگزارکننده رویداد (Organizer)' : 'شرکت‌کننده عادی (Participant)'}</p>
+          <p style="margin-top: 0.5rem;"><b>وضعیت دسترسی:</b> ${user.is_superuser ? 'مدیر کل (Superuser)' : 'کاربر عادی'}</p>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+          <div style="flex:1; background: rgba(99,102,241,0.1); padding: 0.75rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--primary);">
+            <div style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">${isOrg ? myCreatedCount : myRegCount}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">${isOrg ? 'رویدادهای ایجادی شما' : 'رویدادهای ثبت‌نام شده'}</div>
+          </div>
+        </div>
+      `;
+      openModal('userProfileModal');
     }
 
     async function loadData() {
@@ -635,6 +704,11 @@
       return { cleanDesc: desc, eventType: type };
     }
 
+    function handleSearch(val) {
+      searchQuery = val.trim().toLowerCase();
+      renderEvents();
+    }
+
     function renderEvents() {
       const container = document.getElementById('events-container');
       const user = getUser();
@@ -656,6 +730,10 @@
         });
       }
 
+      if (searchQuery) {
+        filtered = filtered.filter(e => e.title.toLowerCase().includes(searchQuery) || (e.description && e.description.toLowerCase().includes(searchQuery)));
+      }
+
       if (!filtered || filtered.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">هیچ رویدادی یافت نشد.</p>';
         return;
@@ -664,7 +742,6 @@
       container.innerHTML = filtered.map(event => {
         const { cleanDesc, eventType } = getCleanEventData(event);
         
-        // تفکیک قطعی نقش کاربر جاری
         const isUserOrganizer = user && (user.role === 'ORGANIZER' || user.is_organizer || user.is_superuser);
         const isEventOwner = user && (String(user.id) === String(event.organizer) || user.is_superuser);
         const reg = !isUserOrganizer ? myRegistrationsCache.find(r => r.event === event.id) : null;
@@ -1064,7 +1141,7 @@
               const stars = '⭐'.repeat(f.rating || 5);
               return `
                 <div class="review-item">
-                  <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--accent);">
+                  <div style="display:flex; justify-content:space-between; font-size:0.80rem; color:var(--accent);">
                     <b>👤 ${f.participant_username || 'شرکت‌کننده'}</b>
                     <span>${stars} (${f.rating}/5)</span>
                   </div>
@@ -1243,6 +1320,12 @@
 
     function switchTab(tab) {
       currentTab = tab;
+      currentCategory = ''; 
+
+      document.querySelectorAll('#cat-filters .cat-btn').forEach(b => b.classList.remove('active'));
+      const allCatBtn = document.querySelector('#cat-filters .cat-btn');
+      if (allCatBtn) allCatBtn.classList.add('active');
+
       document.querySelectorAll('#view-tabs .tab-btn').forEach(b => b.classList.remove('active'));
       event.target.classList.add('active');
       renderEvents();
