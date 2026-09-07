@@ -111,7 +111,6 @@ class EventResultListCreateView(generics.ListCreateAPIView):
 
         participant_id = self.request.data.get('participant')
         
-        # اگر قبلاً برای این کاربر نمره ثبت شده بود، همان رکورد به‌روزرسانی شود
         existing_result = EventResult.objects.filter(event=event, participant_id=participant_id).first()
         if existing_result:
             serializer.instance = existing_result
@@ -127,7 +126,8 @@ class EventConfirmedParticipantsView(APIView):
         if event.organizer != request.user and not request.user.is_superuser:
             return Response({"detail": "دسترسی غیرمجاز."}, status=status.HTTP_403_FORBIDDEN)
         
-        regs = Registration.objects.filter(event=event, status='CONFIRMED').select_related('participant')
+        # پشتیبانی از حالت‌های مختلف وضعیت ثبت‌نام در صورت نیاز
+        regs = Registration.objects.filter(event=event).select_related('participant')
         participants = [
             {
                 "id": r.participant.id,

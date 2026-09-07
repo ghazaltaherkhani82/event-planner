@@ -389,6 +389,19 @@
     </div>
   </div>
 
+  <!-- مودال لیست شرکت‌کنندگان برگزارکننده -->
+  <div class="modal" id="participantsListModal">
+    <div class="modal-content">
+      <h3 id="participantsModalTitle">👥 لیست شرکت‌کنندگان رویداد</h3>
+      <div id="participantsListContainer">
+        <p>در حال بارگذاری...</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('participantsListModal')">بستن</button>
+      </div>
+    </div>
+  </div>
+
   <!-- مودال ورود و ثبت‌نام -->
   <div class="modal" id="loginModal">
     <div class="modal-content">
@@ -819,6 +832,9 @@
 
                 <!-- بخش برگزارکننده رویداد -->
                 ${isEventOwner ? `
+                  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.2rem;">
+                    <button class="btn btn-secondary btn-sm" style="flex:1; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd;" onclick="openParticipantsModal(${event.id}, '${event.title}')">👥 لیست شرکت‌کنندگان</button>
+                  </div>
                   <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
                     ${(statusUpper === 'DRAFT') ? `
                       <button class="btn btn-success btn-sm" style="flex:1;" onclick="changeEventStatus(${event.id}, 'PUBLISHED')">انتشار عمومی رویداد</button>
@@ -843,6 +859,46 @@
           </div>
         `;
       }).join('');
+    }
+
+    async function openParticipantsModal(eventId, title) {
+      document.getElementById('participantsModalTitle').innerText = `شرکت‌کنندگان رویداد: ${title}`;
+      const container = document.getElementById('participantsListContainer');
+      container.innerHTML = '<p>در حال بارگذاری...</p>';
+      openModal('participantsListModal');
+
+      const token = getToken();
+      try {
+        const res = await fetch(`${API_BASE}/events/${eventId}/participants/`, {
+          headers: { 'Authorization': `Token ${token}` }
+        });
+        if (res.ok) {
+          const participants = await res.json();
+          if (participants.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted);">هنوز هیچ‌کس در این رویداد ثبت‌نام نکرده است.</p>';
+          } else {
+            container.innerHTML = `
+              <table>
+                <thead>
+                  <tr><th>شناسه کاربر</th><th>نام کاربری</th></tr>
+                </thead>
+                <tbody>
+                  ${participants.map(p => `
+                    <tr>
+                      <td><b>${p.id}</b></td>
+                      <td><b>${p.username}</b></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+          }
+        } else {
+          container.innerHTML = '<p style="color:var(--danger);">خطا در دریافت لیست شرکت‌کنندگان.</p>';
+        }
+      } catch (e) {
+        container.innerHTML = '<p style="color:var(--danger);">خطا در برقراری ارتباط با سرور.</p>';
+      }
     }
 
     function formatDate(dt) {
