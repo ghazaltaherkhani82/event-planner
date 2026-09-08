@@ -355,7 +355,7 @@
           <input type="text" id="searchInput" placeholder="جستجوی نام رویداد..." oninput="handleSearch(this.value)">
         </div>
 
-        <button class="btn btn-accent" id="create-event-btn" style="display:none;" onclick="openModal('createEventModal')">
+        <button class="btn btn-accent" id="create-event-btn" style="display:none;" onclick="openCreateModal()">
           + تعریف رویداد جدید
         </button>
       </div>
@@ -380,9 +380,7 @@
   <div class="modal" id="userProfileModal">
     <div class="modal-content">
       <h3>👤 پنل اطلاعات کاربری من</h3>
-      <div id="userProfileDetails" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
-        <!-- اطلاعات پویا قرار می‌گیرد -->
-      </div>
+      <div id="userProfileDetails" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;"></div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeModal('userProfileModal')">بستن</button>
       </div>
@@ -393,9 +391,7 @@
   <div class="modal" id="participantsListModal">
     <div class="modal-content">
       <h3 id="participantsModalTitle">👥 لیست شرکت‌کنندگان رویداد</h3>
-      <div id="participantsListContainer">
-        <p>در حال بارگذاری...</p>
-      </div>
+      <div id="participantsListContainer"><p>در حال بارگذاری...</p></div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeModal('participantsListModal')">بستن</button>
       </div>
@@ -433,10 +429,11 @@
     </div>
   </div>
 
-  <!-- مودال ایجاد رویداد -->
+  <!-- مودال ایجاد / ویرایش رویداد -->
   <div class="modal" id="createEventModal">
     <div class="modal-content">
-      <h3>ایجاد رویداد جدید</h3>
+      <h3 id="eventModalTitle">ایجاد رویداد جدید</h3>
+      <input type="hidden" id="editingEventId">
       <div class="form-group">
         <label>عنوان رویداد *</label>
         <input type="text" id="evTitle" placeholder="مثلاً: وبینار کاربردی هوش مصنوعی">
@@ -444,10 +441,10 @@
       <div class="form-row">
         <div class="form-group">
           <label>قالب / دسته‌بندی رویداد *</label>
-          <select id="evType">
+          <select id="evType" onchange="updateDynamicFields(this.value)">
             <option value="WEBINAR">💻 وبینار آنلاین</option>
             <option value="WORKSHOP">🛠 کارگاه تخصصی</option>
-            <option value="CONTEST">🏆 مسابقه چندمرحله‌ای</option>
+            <option value="CONTEST">🏆 مسابقه چندمرحله‌ای (تورنمنت)</option>
             <option value="CONFERENCE">🎤 کنفرانس حضوری</option>
           </select>
         </div>
@@ -456,6 +453,13 @@
           <input type="number" id="evCapacity" placeholder="مثلاً: 25">
         </div>
       </div>
+
+      <!-- بخش ویژگی‌های داینامیک اختصاصی (الگوی EAV) -->
+      <div id="dynamicAttributesContainer" style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.5rem;">
+        <label style="font-size: 0.85rem; color: var(--accent); font-weight: bold;">⚡ ویژگی‌های داینامیک اختصاصی این نوع رویداد (EAV):</label>
+        <div id="dynamicFieldsInputs"></div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>زمان شروع *</label>
@@ -472,26 +476,26 @@
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeModal('createEventModal')">انصراف</button>
-        <button class="btn btn-accent" onclick="submitCreateEvent()">ایجاد رویداد</button>
+        <button class="btn btn-accent" id="saveEventBtn" onclick="submitCreateEvent()">ذخیره رویداد</button>
       </div>
     </div>
   </div>
 
-  <!-- مودال مراحل رویداد -->
+  <!-- مودال مراحل رویداد (متناسب با نوع رویداد) -->
   <div class="modal" id="stagesModal">
     <div class="modal-content">
       <h3 id="stagesModalTitle">برنامه زمانی و مراحل رویداد</h3>
       <div id="stagesListContainer"></div>
       <div id="addStageSection" style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
-        <h4 style="font-size: 0.95rem;">+ افزودن مرحله جدید</h4>
+        <h4 id="addStageHeaderTitle" style="font-size: 0.95rem;">+ افزودن مرحله جدید</h4>
         <input type="hidden" id="stageEventId">
         <div class="form-row">
-          <div class="form-group" style="flex:2;"><label>عنوان مرحله *</label><input type="text" id="stTitle"></div>
+          <div class="form-group" style="flex:2;"><label id="stageTitleLabel">عنوان مرحله / جلسه *</label><input type="text" id="stTitle"></div>
           <div class="form-group" style="flex:1;"><label>ترتیب *</label><input type="number" id="stOrder" value="1"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>زمان شروع مرحله *</label><input type="datetime-local" id="stStart"></div>
-          <div class="form-group"><label>زمان پایان مرحله *</label><input type="datetime-local" id="stEnd"></div>
+          <div class="form-group"><label>زمان شروع *</label><input type="datetime-local" id="stStart"></div>
+          <div class="form-group"><label>زمان پایان *</label><input type="datetime-local" id="stEnd"></div>
         </div>
         <button class="btn btn-primary btn-sm" style="align-self:flex-start;" onclick="submitAddStage()">ثبت مرحله</button>
       </div>
@@ -542,12 +546,7 @@
   <div class="modal" id="reviewsModal">
     <div class="modal-content">
       <h3 id="reviewsModalTitle">💬 نظرات و بازخورد شرکت‌کنندگان</h3>
-      
-      <div id="reviewsListContainer" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 250px; overflow-y: auto;">
-        <!-- لیست نظرات -->
-      </div>
-
-      <!-- فرم ثبت نظر (فقط شرکت‌کنندگان تاییدشده) -->
+      <div id="reviewsListContainer" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 250px; overflow-y: auto;"></div>
       <div id="addReviewSection" style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
         <h4 style="font-size: 0.95rem;">✍️ ثبت نظر شما درباره این دوره</h4>
         <input type="hidden" id="reviewEventId">
@@ -567,7 +566,6 @@
         </div>
         <button class="btn btn-primary btn-sm" style="align-self:flex-start;" onclick="submitReview()">ثبت و ارسال بازخورد</button>
       </div>
-
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeModal('reviewsModal')">بستن</button>
       </div>
@@ -582,6 +580,54 @@
     let currentTab = 'all';
     let searchQuery = '';
     let isRegisterMode = false;
+
+    // تعریف ویژگی‌های داینامیک و متن مراحل بر اساس نوع رویداد (EAV)
+    const CATEGORY_CONFIG = {
+      'WEBINAR': {
+        name: 'وبینار آنلاین',
+        attributes: [
+          { key: 'platform', label: 'پلتفرم برگزاری (اسکای‌روم / زوم)', default: 'اسکای‌روم' },
+          { key: 'has_recording', label: 'امکان دسترسی به ضبط جلسه؟ (بله / خیر)', default: 'بله' }
+        ],
+        stageTitle: 'بخش / پارت وبینار'
+      },
+      'WORKSHOP': {
+        name: 'کارگاه تخصصی',
+        attributes: [
+          { key: 'difficulty_level', label: 'سطح سختی (مقدماتی / پیشرفته)', default: 'متوسط' },
+          { key: 'prerequisites', label: 'پیش‌نیازهای لازم برای شرکت‌کنندگان', default: 'آشنایی پایه' }
+        ],
+        stageTitle: 'جلسه / کارگاه آموزشی'
+      },
+      'CONTEST': {
+        name: 'مسابقه چندمرحله‌ای (تورنمنت)',
+        attributes: [
+          { key: 'rounds_count', label: 'تعداد راندهای مسابقه / تورنمنت', default: '۳' },
+          { key: 'elimination_type', label: 'نوع حذف (حذفی مستقیم / امتیازی)', default: 'حذفی' }
+        ],
+        stageTitle: 'راند مسابقه / مرحله مسابقات'
+      },
+      'CONFERENCE': {
+        name: 'کنفرانس حضوری',
+        attributes: [
+          { key: 'venue_location', label: 'شهر و سالن محل برگزاری حضوری', default: 'تهران - سالن همایش‌ها' },
+          { key: 'has_certificate', label: 'اعطای گواهی معتبر حضور؟ (دارد / ندارد)', default: 'دارد' }
+        ],
+        stageTitle: 'پنل تخصصی کنفرانس'
+      }
+    };
+
+    function updateDynamicFields(type, existingValues = {}) {
+      const container = document.getElementById('dynamicFieldsInputs');
+      const config = CATEGORY_CONFIG[type] || CATEGORY_CONFIG['WORKSHOP'];
+      
+      container.innerHTML = config.attributes.map(attr => `
+        <div class="form-group" style="margin-bottom: 0.5rem;">
+          <label style="font-size:0.78rem; color:var(--text-muted);">${attr.label}</label>
+          <input type="text" class="dynamic-attr-input" data-key="${attr.key}" value="${existingValues[attr.key] !== undefined ? existingValues[attr.key] : attr.default}" placeholder="${attr.label}">
+        </div>
+      `).join('');
+    }
 
     const BANNER_MAP = {
       'WEBINAR': 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?auto=format&fit=crop&w=800&q=80',
@@ -771,6 +817,17 @@
         }
         const isFull = event.capacity && remCapacity === 0;
 
+        // ساخت بخش نمایش ویژگی‌های داینامیک EAV (اگر در API یا دیکشنری وجود داشته باشد)
+        let dynamicHtml = '';
+        if (event.attributes && typeof event.attributes === 'object') {
+          const attrPairs = Object.entries(event.attributes);
+          if (attrPairs.length > 0) {
+            dynamicHtml = `<div style="font-size:0.78rem; color:var(--accent); margin-top:0.3rem; border-top: 1px dashed var(--border); padding-top: 0.3rem;">` +
+              attrPairs.map(([k, v]) => `<span><b>${k}:</b> ${v}</span>`).join(' | ') +
+              `</div>`;
+          }
+        }
+
         return `
           <div class="event-card">
             <div class="card-banner">
@@ -799,12 +856,13 @@
                 </div>
                 <div class="meta-row"><span>شروع:</span> <b>${formatDate(event.start_time)}</b></div>
                 <div class="meta-row"><span>پایان:</span> <b>${formatDate(event.end_time)}</b></div>
+                ${dynamicHtml}
                 ${(!isUserOrganizer && reg) ? `<div class="meta-row" style="color:var(--success);"><span>وضعیت شما:</span> <b>ثبت‌نام شده</b></div>` : ''}
               </div>
 
               <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto;">
                 <div style="display: flex; gap: 0.4rem;">
-                  <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openStagesModal(${event.id}, '${event.title}', ${isEventOwner})">برنامه و مراحل</button>
+                  <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openStagesModal(${event.id}, '${event.title}', '${eventType}', ${isEventOwner})">مراحل و برنامه</button>
                   <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openResultsModal(${event.id}, '${event.title}')">کارنامه و نتایج</button>
                 </div>
 
@@ -834,6 +892,7 @@
                 ${isEventOwner ? `
                   <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.2rem;">
                     <button class="btn btn-secondary btn-sm" style="flex:1; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd;" onclick="openParticipantsModal(${event.id}, '${event.title}')">👥 لیست شرکت‌کنندگان</button>
+                    <button class="btn btn-secondary btn-sm" style="background: rgba(245, 158, 11, 0.2); border: 1px solid var(--warning); color: #fde047;" onclick="openEditModal(${event.id})">✏️ ویرایش</button>
                   </div>
                   <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
                     ${(statusUpper === 'DRAFT') ? `
@@ -1004,7 +1063,42 @@
       }
     }
 
+    function openCreateModal() {
+      document.getElementById('eventModalTitle').innerText = 'ایجاد رویداد جدید';
+      document.getElementById('editingEventId').value = '';
+      document.getElementById('evTitle').value = '';
+      document.getElementById('evType').value = 'WORKSHOP';
+      document.getElementById('evCapacity').value = '';
+      document.getElementById('evStartTime').value = '';
+      document.getElementById('evEndTime').value = '';
+      document.getElementById('evDesc').value = '';
+      document.getElementById('saveEventBtn').innerText = 'ایجاد رویداد';
+      updateDynamicFields('WORKSHOP');
+      openModal('createEventModal');
+    }
+
+    async function openEditModal(eventId) {
+      const event = allEventsCache.find(e => e.id === eventId);
+      if (!event) return;
+
+      const { cleanDesc, eventType } = getCleanEventData(event);
+
+      document.getElementById('eventModalTitle').innerText = `ویرایش رویداد: ${event.title}`;
+      document.getElementById('editingEventId').value = event.id;
+      document.getElementById('evTitle').value = event.title || '';
+      document.getElementById('evType').value = eventType;
+      document.getElementById('evCapacity').value = event.capacity || '';
+      document.getElementById('evStartTime').value = event.start_time ? event.start_time.substring(0, 16) : '';
+      document.getElementById('evEndTime').value = event.end_time ? event.end_time.substring(0, 16) : '';
+      document.getElementById('evDesc').value = cleanDesc || '';
+      document.getElementById('saveEventBtn').innerText = 'ذخیره تغییرات';
+
+      updateDynamicFields(eventType, event.attributes || {});
+      openModal('createEventModal');
+    }
+
     async function submitCreateEvent() {
+      const editingId = document.getElementById('editingEventId').value;
       const title = document.getElementById('evTitle').value.trim();
       const eventType = document.getElementById('evType').value;
       const capacity = document.getElementById('evCapacity').value;
@@ -1020,10 +1114,22 @@
       const end_time = new Date(endTimeInput).toISOString();
       const description = `[TYPE:${eventType}]\n${userDesc}`;
 
+      const dynamicAttributes = {};
+      document.querySelectorAll('.dynamic-attr-input').forEach(input => {
+        const key = input.getAttribute('data-key');
+        const val = input.value.trim();
+        if (key && val) {
+          dynamicAttributes[key] = val;
+        }
+      });
+
       const token = getToken();
+      const url = editingId ? `${API_BASE}/events/${editingId}/` : `${API_BASE}/events/`;
+      const method = editingId ? 'PUT' : 'POST';
+
       try {
-        const res = await fetch(`${API_BASE}/events/`, {
-          method: 'POST',
+        const res = await fetch(url, {
+          method: method,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Token ${token}`
@@ -1034,17 +1140,18 @@
             start_time,
             end_time,
             description,
-            status: 'Draft'
+            status: editingId ? undefined : 'Draft',
+            attributes: dynamicAttributes
           })
         });
 
         if (res.ok) {
-          alert("رویداد جدید در وضعیت پیش‌نویس (Draft) ساخته شد. می‌توانید آن را منتشر کنید.");
+          alert(editingId ? "رویداد با موفقیت ویرایش شد." : "رویداد جدید با موفقیت ایجاد شد.");
           closeModal('createEventModal');
           loadData();
         } else {
           const err = await res.json().catch(() => ({}));
-          alert("خطا در ایجاد: " + JSON.stringify(err));
+          alert("خطا در ذخیره‌سازی: " + JSON.stringify(err));
         }
       } catch (e) {
         alert("خطا در ارتباط با سرور.");
@@ -1085,14 +1192,8 @@
       const rankVal = document.getElementById('rankInput').value;
       const remarksVal = document.getElementById('remarksInput').value.trim();
 
-      if (!participantId) {
-        alert("لطفاً یک شرکت‌کننده را انتخاب کنید.");
-        return;
-      }
-      if (scoreVal === "") {
-        alert("وارد کردن نمره الزامی است.");
-        return;
-      }
+      if (!participantId) { alert("لطفاً یک شرکت‌کننده را انتخاب کنید."); return; }
+      if (scoreVal === "") { alert("وارد کردن نمره الزامی است."); return; }
 
       const payload = {
         participant: parseInt(participantId),
@@ -1100,9 +1201,7 @@
         remarks: remarksVal || ""
       };
 
-      if (rankVal !== "") {
-        payload.rank = parseInt(rankVal);
-      }
+      if (rankVal !== "") { payload.rank = parseInt(rankVal); }
 
       const token = getToken();
       try {
@@ -1122,9 +1221,7 @@
         } else {
           const err = await res.json().catch(() => ({}));
           let errMsg = "";
-          for (let key in err) {
-            errMsg += `${key}: ${err[key]} \n`;
-          }
+          for (let key in err) { errMsg += `${key}: ${err[key]} \n`; }
           alert("علت خطا از سرور:\n" + (errMsg || JSON.stringify(err)));
         }
       } catch (e) {
@@ -1220,16 +1317,10 @@
       const comment = document.getElementById('reviewTextInput').value.trim();
       const rating = document.getElementById('reviewRatingInput').value;
 
-      if (!comment) {
-        alert("لطفاً متن بازخورد خود را وارد کنید.");
-        return;
-      }
+      if (!comment) { alert("لطفاً متن بازخورد خود را وارد کنید."); return; }
 
       const token = getToken();
-      if (!token) {
-        alert("برای ثبت نظر ابتدا وارد حساب کاربری خود شوید.");
-        return;
-      }
+      if (!token) { alert("برای ثبت نظر ابتدا وارد حساب کاربری خود شوید."); return; }
 
       try {
         const res = await fetch(`${API_BASE}/relations/feedbacks/`, {
@@ -1258,10 +1349,15 @@
       }
     }
 
-    async function openStagesModal(eventId, title, isOrganizer) {
-      document.getElementById('stagesModalTitle').innerText = `مراحل رویداد: ${title}`;
+    async function openStagesModal(eventId, title, eventType, isOrganizer) {
+      document.getElementById('stagesModalTitle').innerText = `برنامه زمانی مراحل رویداد: ${title}`;
       document.getElementById('stageEventId').value = eventId;
       document.getElementById('addStageSection').style.display = isOrganizer ? 'flex' : 'none';
+      
+      const config = CATEGORY_CONFIG[eventType] || CATEGORY_CONFIG['WORKSHOP'];
+      document.getElementById('addStageHeaderTitle').innerText = `+ افزودن ${config.stageTitle} جدید`;
+      document.getElementById('stageTitleLabel').innerText = `عنوان ${config.stageTitle} *`;
+
       const container = document.getElementById('stagesListContainer');
       container.innerHTML = '<p>در حال بارگذاری...</p>';
       openModal('stagesModal');
@@ -1271,11 +1367,11 @@
         if (res.ok) {
           const stages = await res.json();
           if (stages.length === 0) {
-            container.innerHTML = '<p style="color:var(--text-muted);">مرحله‌ای تعریف نشده است.</p>';
+            container.innerHTML = `<p style="color:var(--text-muted);">مرحله یا جلسه‌ای تحت عنوان ${config.stageTitle} تعریف نشده است.</p>`;
           } else {
             container.innerHTML = `
               <table>
-                <thead><tr><th>ترتیب</th><th>عنوان مرحله</th><th>زمان شروع</th><th>زمان پایان</th></tr></thead>
+                <thead><tr><th>ترتیب</th><th>عنوان (${config.stageTitle})</th><th>زمان شروع</th><th>زمان پایان</th></tr></thead>
                 <tbody>
                   ${stages.map(s => `<tr><td>${s.order}</td><td><b>${s.title}</b></td><td>${formatDate(s.start_time)}</td><td>${formatDate(s.end_time)}</td></tr>`).join('')}
                 </tbody>
@@ -1295,7 +1391,7 @@
       const startVal = document.getElementById('stStart').value;
       const endVal = document.getElementById('stEnd').value;
 
-      if (!title || !startVal || !endVal) { alert("عنوان و زمان‌های شروع و پایان مرحله الزامی هستند."); return; }
+      if (!title || !startVal || !endVal) { alert("عنوان و زمان‌های شروع و پایان الزامی هستند."); return; }
 
       const token = getToken();
       try {
@@ -1314,9 +1410,11 @@
         });
 
         if (res.ok) {
-          alert("مرحله اضافه شد.");
+          alert("مرحله با موفقیت اضافه شد.");
           document.getElementById('stTitle').value = '';
-          openStagesModal(eventId, '', true);
+          const eventObj = allEventsCache.find(e => e.id == eventId);
+          const { eventType } = eventObj ? getCleanEventData(eventObj) : { eventType: 'WORKSHOP' };
+          openStagesModal(eventId, '', eventType, true);
         } else {
           const err = await res.json().catch(() => ({}));
           alert("خطا در ایجاد مرحله: " + JSON.stringify(err));
